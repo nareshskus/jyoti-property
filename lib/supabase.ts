@@ -26,10 +26,51 @@ export function getSupabaseBrowserClient() {
   return createBrowserClient(url, anonKey, {
     cookies: {
       getAll() {
-        return [];
+        if (typeof document === "undefined") {
+          return [];
+        }
+
+        return document.cookie
+          .split("; ")
+          .filter(Boolean)
+          .map((cookie) => {
+            const [name, ...valueParts] = cookie.split("=");
+            return {
+              name,
+              value: decodeURIComponent(valueParts.join("=")),
+            };
+          });
       },
-      setAll() {
-        return undefined;
+      setAll(cookiesToSet) {
+        if (typeof document === "undefined") {
+          return;
+        }
+
+        for (const { name, value, options } of cookiesToSet) {
+          let cookieString = `${name}=${encodeURIComponent(value)}; path=/; SameSite=Lax`;
+
+          if (options?.maxAge) {
+            cookieString += `; max-age=${options.maxAge}`;
+          }
+
+          if (options?.expires) {
+            cookieString += `; expires=${new Date(options.expires).toUTCString()}`;
+          }
+
+          if (options?.domain) {
+            cookieString += `; domain=${options.domain}`;
+          }
+
+          if (options?.secure) {
+            cookieString += "; secure";
+          }
+
+          if (options?.httpOnly) {
+            cookieString += "; HttpOnly";
+          }
+
+          document.cookie = cookieString;
+        }
       },
     },
   });

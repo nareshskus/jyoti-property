@@ -1,16 +1,21 @@
 import Link from "next/link";
 import { ArrowUpRight, Building2, CircleDollarSign, FileText, Heart, Inbox } from "lucide-react";
+import { getAdminMetricSummary, getEnquiries, getPendingProperties } from "@/lib/data";
 
-const summaryCards = [
-  { label: "Total published properties", value: "128", icon: Building2 },
-  { label: "Awaiting approval", value: "18", icon: Inbox },
-  { label: "Sold or rented", value: "39", icon: CircleDollarSign },
-  { label: "New enquiries", value: "14", icon: FileText },
-  { label: "Interested-property records", value: "92", icon: Heart },
-  { label: "New customer submissions", value: "6", icon: ArrowUpRight },
-];
+export default async function AdminDashboardPage() {
+  const { publishedProperties, pendingProperties, totalEnquiries, interestedProperties } = await getAdminMetricSummary();
+  const recentEnquiries = await getEnquiries(3);
+  const recentSubmissions = await getPendingProperties();
 
-export default function AdminDashboardPage() {
+  const summaryCards = [
+    { label: "Total published properties", value: String(publishedProperties), icon: Building2 },
+    { label: "Awaiting approval", value: String(pendingProperties), icon: Inbox },
+    { label: "Sold or rented", value: "0", icon: CircleDollarSign },
+    { label: "New enquiries", value: String(totalEnquiries), icon: FileText },
+    { label: "Interested-property records", value: String(interestedProperties), icon: Heart },
+    { label: "Recent submissions", value: String(recentSubmissions.length), icon: ArrowUpRight },
+  ];
+
   return (
     <div className="space-y-8 p-8">
       <div>
@@ -37,9 +42,16 @@ export default function AdminDashboardPage() {
             <Link href="/admin/enquiries" className="text-sm font-medium text-slate-700 hover:text-slate-900">View all</Link>
           </div>
           <div className="space-y-4">
-            {["Need 3BHK in a preferred locality", "Commercial lease query", "Plot search in a growing area"].map((item) => (
-              <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">{item}</div>
-            ))}
+            {recentEnquiries.length > 0 ? (
+              recentEnquiries.map((enquiry) => (
+                <div key={enquiry.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                  <div className="font-medium text-slate-900">{enquiry.name}</div>
+                  <div className="mt-1">{enquiry.message}</div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">No enquiries yet.</div>
+            )}
           </div>
         </div>
 
@@ -49,9 +61,16 @@ export default function AdminDashboardPage() {
             <Link href="/admin/submissions" className="text-sm font-medium text-slate-700 hover:text-slate-900">View all</Link>
           </div>
           <div className="space-y-4">
-            {["Pine Crest Villa", "Harbor View Apartment", "Oakwood Office Space"].map((item) => (
-              <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">{item}</div>
-            ))}
+            {recentSubmissions.length > 0 ? (
+              recentSubmissions.slice(0, 3).map((property) => (
+                <div key={property.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                  <div className="font-medium text-slate-900">{property.title}</div>
+                  <div className="mt-1">{property.locality}, {property.city}</div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">No pending submissions.</div>
+            )}
           </div>
         </div>
       </div>

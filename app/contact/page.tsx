@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { z } from "zod";
 import { siteConfig } from "@/lib/config";
+import { getSupabaseBrowserClient } from "@/lib/supabase";
 
 const enquirySchema = z.object({
   name: z.string().min(2, "Name is required."),
@@ -18,6 +19,7 @@ export default function ContactPage() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(enquirySchema),
@@ -25,8 +27,34 @@ export default function ContactPage() {
   });
 
   async function onSubmit(values: z.infer<typeof enquirySchema>) {
+    const supabase = getSupabaseBrowserClient();
+
+    if (!supabase) {
+      toast.error("Supabase is not configured in this environment.");
+      return;
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const { error } = await supabase.from("enquiries").insert({
+      customer_id: session?.user?.id ?? null,
+      name: values.name.trim(),
+      email: values.email.trim(),
+      phone: values.phone.trim(),
+      message: values.message.trim(),
+      status: "new",
+    });
+
+    if (error) {
+      console.error(error);
+      toast.error("Your enquiry could not be sent. Please try again later.");
+      return;
+    }
+
+    reset();
     toast.success("Your enquiry has been saved. We will get back to you soon.");
-    console.info("Demo enquiry received:", values);
   }
 
   return (

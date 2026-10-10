@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Jyoti Property home favicon">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="roof" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#bg)"/>
+  <path d="M12 30L32 14l20 16v18a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4V30Z" fill="#f8fafc" opacity="0.08"/>
+  <path d="M16 29.5L32 15.5l16 14v17.5A2.5 2.5 0 0 1 45.5 50h-27A2.5 2.5 0 0 1 16 47.5V29.5Z" fill="#f8fafc"/>
+  <path d="M12 30 32 14l20 16-4.5 4.5L32 22.5 16.5 34.5 12 30Z" fill="url(#roof)"/>
+  <rect x="27" y="35" width="10" height="15" rx="2" fill="#0f172a"/>
+  <rect x="19" y="31" width="8" height="8" rx="1.5" fill="#fbbf24" opacity="0.95"/>
+  <rect x="37" y="31" width="8" height="8" rx="1.5" fill="#fbbf24" opacity="0.95"/>
+  <path d="M14 48h36" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+</svg>

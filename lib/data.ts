@@ -33,9 +33,24 @@ export type Property = {
   coverImagePath: string;
   publicationStatus: PublicationStatus;
   availabilityStatus: AvailabilityStatus;
+  ownerPhonePrivate?: string;
+  ownerEmailPrivate?: string;
   createdAt: string;
   updatedAt: string;
   featured?: boolean;
+};
+
+export type Enquiry = {
+  id: string;
+  customerId?: string;
+  propertyId?: string;
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+  status: "new" | "contacted" | "visit_scheduled" | "closed";
+  adminNotes?: string;
+  createdAt: string;
 };
 
 export const propertyCategories = [
@@ -76,6 +91,8 @@ function mapPropertyRow(row: Record<string, any>): Property {
     coverImagePath: row.cover_image_path ?? imagePaths[0] ?? "",
     publicationStatus: (row.publication_status ?? "pending_approval") as PublicationStatus,
     availabilityStatus: (row.availability_status ?? "available") as AvailabilityStatus,
+    ownerPhonePrivate: row.owner_phone_private ?? undefined,
+    ownerEmailPrivate: row.owner_email_private ?? undefined,
     createdAt: row.created_at ?? new Date().toISOString(),
     updatedAt: row.updated_at ?? row.created_at ?? new Date().toISOString(),
     featured: Boolean(row.featured ?? false),
@@ -102,6 +119,42 @@ export async function getPublishedProperties(): Promise<Property[]> {
   return data.map(mapPropertyRow);
 }
 
+export async function getPendingProperties(): Promise<Property[]> {
+  const supabase = await getSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("properties")
+    .select("*")
+    .in("publication_status", ["pending_approval", "rejected"])
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data.map(mapPropertyRow);
+}
+
+export async function getAllProperties(): Promise<Property[]> {
+  const supabase = await getSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase.from("properties").select("*").order("created_at", { ascending: false });
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data.map(mapPropertyRow);
+}
+
 export async function getFeaturedProperties(limit = 3): Promise<Property[]> {
   const properties = await getPublishedProperties();
   return properties.slice(0, limit);
@@ -118,6 +171,7 @@ export async function getPropertyById(id: string): Promise<Property | null> {
     .from("properties")
     .select("*")
     .eq("id", id)
+    .eq("publication_status", "published")
     .maybeSingle();
 
   if (error || !data) {
@@ -144,7 +198,7 @@ export async function getPropertyFilterOptions() {
   const { data, error } = await supabase
     .from("properties")
     .select("city, property_type, listing_type, bedrooms")
-    .neq("publication_status", "rejected");
+    .eq("publication_status", "published");
 
   if (error || !data) {
     return fallback;
@@ -161,4 +215,90 @@ export async function getPropertyFilterOptions() {
     listingTypes,
     bedroomOptions,
   };
+}
+
+export async function getEnquiries(limit = 20): Promise<Enquiry[]> {
+  const supabase = await getSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("enquiries")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data.map((row) => ({
+    id: row.id,
+    customerId: row.customer_id ?? undefined,
+    propertyId: row.property_id ?? undefined,
+    name: row.name ?? "Customer",
+    email: row.email ?? "",
+    phone: row.phone ?? "",
+    message: row.message ?? "",
+    status: (row.status ?? "new") as Enquiry["status"],
+    adminNotes: row.admin_notes ?? undefined,
+    createdAt: row.created_at ?? new Date().toISOString(),
+  }));
+}
+
+export async function getAdminMetricSummary() {
+  const supabase = await getSupabaseServerClient();
+
+  if (!supabase) {
+    return {
+      publishedProperties: 0,
+      pendingProperties: 0,
+      totalEnquiries: 0,
+      interestedProperties: 0,
+    };
+  }
+
+  const [enquiriesResult, interestsResult] = await Promise.all([
+    supabase.from("enquiries").select("id", { count: "exact", head: true }),
+    supabase.from("property_interests").select("id", { count: "exact", head: true }),
+  ]);
+
+  const publishedProperties = await supabase
+    .from("properties")
+    .select("id", { count: "exact", head: true })
+    .eq("publication_status", "published");
+
+  const pendingProperties = await supabase
+    .from("properties")
+    .select("id", { count: "exact", head: true })
+    .eq("publication_status", "pending_approval");
+
+  return {
+    publishedProperties: publishedProperties.count ?? 0,
+    pendingProperties: pendingProperties.count ?? 0,
+    totalEnquiries: enquiriesResult.count ?? 0,
+    interestedProperties: interestsResult.count ?? 0,
+  };
+}
+
+export async function updatePropertyPublicationStatus(propertyId: string, status: PublicationStatus) {
+  const supabase = await getSupabaseServerClient();
+
+  if (!supabase) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const { error } = await supabase
+    .from("properties")
+    .update({
+      publication_status: status,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", propertyId);
+
+  if (error) {
+    throw error;
+  }
 }

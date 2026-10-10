@@ -6,7 +6,7 @@ do $$
     select id into admin_uuid from auth.users where email = 'admin@jyotiproperty.com' limit 1;
     if admin_uuid is not null then
       insert into public.profiles (id, full_name, email, phone, role)
-      values (admin_uuid, 'Jyoti Property Admin', 'admin@jyotiproperty.com', '+91 98765 43210', 'admin')
+      values (admin_uuid, 'Jyoti Property Admin', 'admin@jyotiproperty.com', '+91 9415503638', 'admin')
       on conflict (id) do update set
         full_name = excluded.full_name,
         email = excluded.email,

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Bath, BedDouble, MapPin, Ruler, Star } from "lucide-react";
+import { Bath, BedDouble, Building2, MapPin, Ruler, Star } from "lucide-react";
 import { formatCurrency } from "@/lib/config";
 import { getAvailabilityTone } from "@/lib/utils";
 import type { Property } from "@/lib/data";
@@ -52,18 +52,33 @@ export function PropertyCard({ property }: { property: Property }) {
         </div>
 
         <div className="grid grid-cols-3 gap-3 border-y border-slate-100 py-3 text-sm text-slate-600">
-          <div className="flex items-center gap-2">
-            <BedDouble className="h-4 w-4 text-slate-400" />
-            {property.bedrooms} BHK
-          </div>
-          <div className="flex items-center gap-2">
-            <Bath className="h-4 w-4 text-slate-400" />
-            {property.bathrooms} Bath
-          </div>
-          <div className="flex items-center gap-2">
-            <Ruler className="h-4 w-4 text-slate-400" />
-            {property.areaSqft} sq ft
-          </div>
+          {property.propertyType === "Plot" ? (
+            <>
+              <div className="flex items-center gap-2 col-span-2">
+                <Building2 className="h-4 w-4 text-slate-400" />
+                Plot / land parcel
+              </div>
+              <div className="flex items-center gap-2">
+                <Ruler className="h-4 w-4 text-slate-400" />
+                {property.areaSqft} sq ft
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                <BedDouble className="h-4 w-4 text-slate-400" />
+                {property.bedrooms} BHK
+              </div>
+              <div className="flex items-center gap-2">
+                <Bath className="h-4 w-4 text-slate-400" />
+                {property.bathrooms} Bath
+              </div>
+              <div className="flex items-center gap-2">
+                <Ruler className="h-4 w-4 text-slate-400" />
+                {property.areaSqft} sq ft
+              </div>
+            </>
+          )}
         </div>
 
         <div className="flex gap-3">

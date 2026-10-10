@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { getPublishedProperties } from "@/lib/data";
+import { getAllProperties } from "@/lib/data";
 
 export default async function AdminPropertiesPage() {
-  const properties = await getPublishedProperties();
+  const properties = await getAllProperties();
+
   return (
     <div className="space-y-6 p-8">
       <div className="flex items-center justify-between gap-4">

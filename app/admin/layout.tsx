@@ -1,5 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { BarChart3, Building2, FileText, Heart, LogOut, Plus, UserRound } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase";
 
 const navItems = [
   { href: "/admin", label: "Dashboard Overview", icon: BarChart3 },
@@ -11,6 +16,96 @@ const navItems = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+
+    if (!supabase) {
+      router.replace("/login");
+      return;
+    }
+
+    let isMounted = true;
+
+    const syncAdmin = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user = session?.user ?? null;
+
+      if (!user) {
+        if (isMounted) {
+          router.replace("/login");
+        }
+        return;
+      }
+
+      const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (profile?.role !== "admin") {
+        router.replace("/my-account");
+        return;
+      }
+
+      setIsAdmin(true);
+    };
+
+    syncAdmin();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const user = session?.user ?? null;
+
+      if (!user) {
+        if (isMounted) {
+          router.replace("/login");
+        }
+        return;
+      }
+
+      const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (profile?.role !== "admin") {
+        router.replace("/my-account");
+        return;
+      }
+
+      setIsAdmin(true);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [router]);
+
+  async function handleLogout() {
+    const supabase = getSupabaseBrowserClient();
+
+    if (!supabase) {
+      router.push("/login");
+      return;
+    }
+
+    await supabase.auth.signOut();
+    router.push("/");
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
+
   return (
     <div className="container-shell py-8">
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
@@ -33,7 +128,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             ))}
           </nav>
 
-          <button type="button" className="mt-8 flex w-full items-center gap-3 rounded-2xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+          <button type="button" onClick={handleLogout} className="mt-8 flex w-full items-center gap-3 rounded-2xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <LogOut className="h-4 w-4" />
             Logout
           </button>

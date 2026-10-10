@@ -72,14 +72,18 @@ async function PropertyDetailPageInner({ params }: { params: Promise<{ id: strin
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl bg-slate-50 p-3">
-              <div className="flex items-center gap-2 text-sm text-slate-500"><BedDouble className="h-4 w-4" /> Bedrooms</div>
-              <div className="mt-2 text-xl font-semibold text-slate-900">{property.bedrooms}</div>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-3">
-              <div className="flex items-center gap-2 text-sm text-slate-500"><Bath className="h-4 w-4" /> Bathrooms</div>
-              <div className="mt-2 text-xl font-semibold text-slate-900">{property.bathrooms}</div>
-            </div>
+            {property.propertyType === "Plot" ? null : (
+              <>
+                <div className="rounded-2xl bg-slate-50 p-3">
+                  <div className="flex items-center gap-2 text-sm text-slate-500"><BedDouble className="h-4 w-4" /> Bedrooms</div>
+                  <div className="mt-2 text-xl font-semibold text-slate-900">{property.bedrooms}</div>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-3">
+                  <div className="flex items-center gap-2 text-sm text-slate-500"><Bath className="h-4 w-4" /> Bathrooms</div>
+                  <div className="mt-2 text-xl font-semibold text-slate-900">{property.bathrooms}</div>
+                </div>
+              </>
+            )}
             <div className="rounded-2xl bg-slate-50 p-3">
               <div className="flex items-center gap-2 text-sm text-slate-500"><Ruler className="h-4 w-4" /> Area</div>
               <div className="mt-2 text-xl font-semibold text-slate-900">{property.areaSqft} sqft</div>

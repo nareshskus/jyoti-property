@@ -41,15 +41,30 @@ export default function LoginPage() {
         return;
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
       });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
+
+      const userId = data.user?.id;
+      let isAdmin = false;
+
+      if (userId) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", userId)
+          .maybeSingle();
+
+        isAdmin = profile?.role === "admin";
+      }
 
       toast.success("You are logged in.");
-      router.push("/");
+      router.push(isAdmin ? "/admin" : "/my-account");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to sign in.";
       toast.error(message);

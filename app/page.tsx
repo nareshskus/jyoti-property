@@ -27,7 +27,7 @@ export default async function Home() {
           <div className="space-y-8">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-medium tracking-[0.2em] text-slate-200 uppercase">
               <ShieldCheck className="h-3.5 w-3.5" />
-              Trusted since 2000
+              Trusted since 1998
             </span>
             <div className="space-y-5">
               <h1 className="max-w-xl text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
